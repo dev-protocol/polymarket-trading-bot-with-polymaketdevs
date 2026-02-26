@@ -1,48 +1,28 @@
 {
-  "name": "find-my-domain",
-  "version": "2.0.8",
-  "description": "AI-powered domain name generator with real-time WHOIS availability checking - Monorepo",
-  "private": true,
-  "packageManager": "pnpm@10.28.0",
-  "author": {
-    "name": "Dmitrii Selikhov",
-    "email": "selikhov.dmitrey@gmail.com",
-    "url": "https://www.linkedin.com/in/dimetrix"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/idimetrix/find-my-domain.git"
-  },
-  "license": "MIT",
+  "name": "polymarket-trading-bot-ts",
+  "version": "0.1.0",
+  "description": "TypeScript port of Polymarket-Trading-Bot-Rust - dual limit start bot",
+  "type": "module",
+  "main": "dist/main-dual-limit-045.js",
   "scripts": {
-    "dev": "pnpm --filter @find-my-domain/web dev",
-    "dev:cli": "pnpm --filter @find-my-domain/cli dev",
-    "dev:all": "pnpm -r --parallel dev",
-    "build": "pnpm -r build",
-    "build:web": "pnpm --filter @find-my-domain/web build",
-    "build:cli": "pnpm --filter @find-my-domain/cli build",
-    "build:core": "pnpm --filter @find-my-domain/core build",
-    "lint": "pnpm -r lint",
-    "lint:fix": "pnpm -r lint:fix",
-    "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck",
-    "clean": "pnpm -r clean",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "changeset": "changeset",
-    "version": "changeset version",
-    "release": "pnpm build && changeset publish",
-    "validate": "./scripts/pre-publish.sh",
-    "validate:docs": "./scripts/validate-docs.sh",
-    "prepublish": "pnpm clean && pnpm build && pnpm typecheck && pnpm lint && pnpm test"
+    "build": "tsc",
+    "start": "node --experimental-vm-modules dist/main-dual-limit-045.js",
+    "live": "node --experimental-vm-modules dist/main-dual-limit-045.js --no-simulation",
+    "dev": "tsx src/main-dual-limit-045.ts",
+    "dev:live": "tsx src/main-dual-limit-045.ts --no-simulation",
+    "dual-limit": "tsx src/main-dual-limit-045.ts"
+  },
+  "dependencies": {
+    "clob-client-sdk": "5.3.2",
+    "ethers": "^5.7.2",
+    "axios": "^1.6.0"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.8",
-    "prettier": "^3.7.4",
-    "typescript": "^5.9.3"
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
   },
   "engines": {
-    "node": ">=22",
-    "pnpm": ">=10"
+    "node": ">=18"
   }
 }

@@ -1,52 +1,7 @@
-# Dependencies
 node_modules/
-.pnp
-.pnp.js
-
-# Build outputs
 dist/
-build/
-.next/
-out/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Configuration files (user-specific)
-input.json
-prompt.txt
-
-# Output files
-output/
-
-# Logs
-logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Testing
-coverage/
-.nyc_output
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Misc
-*.tsbuildinfo
-.turbo
-
-# Debug
-.vercel
+.env
+history.toml
+price_monitor.toml
+config.json
