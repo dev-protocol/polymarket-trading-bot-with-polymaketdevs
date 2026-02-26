@@ -171,6 +171,3 @@ node dist/main-dual-limit-045.js --no-simulation -c config.json
 
 ## Support
 
-For questions or customizations:
-- E-Mail: admin@hyperbuildx.com
-- Telegram: [@bettyjk_0915](https://t.me/bettyjk_0915)
