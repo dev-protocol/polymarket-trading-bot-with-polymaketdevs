@@ -1,8 +1,24 @@
 import { ethers } from "ethers";
-import { ClobClient, Side, OrderType, Chain, AssetType } from "clob-client-sdk";
 import type { Config } from "./config.js";
 
-export type { ClobClient };
+/**
+ * Minimal internal CLOB client interface used by this bot.
+ * The live implementation that talked to the Polymarket CLOB has been
+ * removed for security reasons (the previous SDK depended on malware).
+ *
+ * All functions that would place/cancel orders now throw at runtime.
+ * The bot is effectively **simulation-only** in this build.
+ */
+export interface ClobClient {
+  // These mirror the methods that were previously used from clob-client-sdk.
+  createAndPostOrder(...args: unknown[]): Promise<unknown>;
+  createOrder(...args: unknown[]): Promise<unknown>;
+  postOrders(...args: unknown[]): Promise<unknown>;
+  createAndPostMarketOrder(...args: unknown[]): Promise<unknown>;
+  getBalanceAllowance(...args: unknown[]): Promise<{ balance?: string }>;
+  cancelOrder(...args: unknown[]): Promise<unknown>;
+  getOpenOrders(...args: unknown[]): Promise<unknown>;
+}
 
 /** Create ethers Wallet from private key hex (with or without 0x) */
 export function createWallet(privateKey: string): ethers.Wallet {
@@ -12,59 +28,13 @@ export function createWallet(privateKey: string): ethers.Wallet {
 
 /** Build authenticated CLOB client for order placement */
 export async function createClobClient(cfg: Config["polymarket"]): Promise<ClobClient> {
-  const pk = cfg.private_key;
-  if (!pk) throw new Error("private_key is required in config");
-  const wallet = createWallet(pk);
-  const host = cfg.clob_api_url.replace(/\/$/, "");
-
-  let apiCreds: { key: string; secret: string; passphrase: string } | undefined;
-  if (cfg.api_key && cfg.api_secret && cfg.api_passphrase) {
-    apiCreds = {
-      key: cfg.api_key,
-      secret: cfg.api_secret,
-      passphrase: cfg.api_passphrase,
-    };
-  }
-
-  // Match Rust/other projects: pass signature type and proxy so L2 auth matches API key.
-  // 0 = EOA, 1 = POLY_PROXY, 2 = POLY_GNOSIS_SAFE (per @polymarket/order-utils).
-  const signatureType = cfg.signature_type ?? 0;
-  const funderAddress =
-    (signatureType === 1 || signatureType === 2) && cfg.proxy_wallet_address
-      ? cfg.proxy_wallet_address
-      : undefined;
-
-  const client = new ClobClient(host, Chain.POLYGON, wallet, apiCreds, signatureType, funderAddress);
-  if (!apiCreds) {
-    // Try derive first (restores existing key). createApiKey() often returns 400 "Could not create api key" if the account already has a key.
-    let creds: { key: string; secret: string; passphrase: string } | null = null;
-    try {
-      const derived = await client.deriveApiKey();
-      if (derived?.key && derived?.secret && derived?.passphrase) {
-        creds = derived;
-      }
-    } catch {
-      // derive failed (e.g. no existing key), fall through to create
-    }
-    if (!creds) {
-      try {
-        const created = await client.createApiKey();
-        if (created?.key && created?.secret && created?.passphrase) {
-          creds = created;
-        }
-      } catch (e) {
-        throw new Error(
-          "CLOB API key failed: create and derive both failed. If you already have a key, add api_key, api_secret, api_passphrase to config.json (from polymarket.com/settings?tab=builder). Error: " +
-            String(e instanceof Error ? e.message : e)
-        );
-      }
-    }
-    if (!creds) {
-      throw new Error("CLOB API key derivation/creation returned no credentials. Add api_key, api_secret, api_passphrase to config.json.");
-    }
-    return new ClobClient(host, Chain.POLYGON, wallet, creds, signatureType, funderAddress);
-  }
-  return client;
+  // Live CLOB trading has been disabled in this project because the previous
+  // external SDK depended on a malicious package. We keep this function only
+  // to satisfy the existing call sites; if it is ever invoked, make it clear
+  // to the caller that live trading is not available.
+  throw new Error(
+    "Live CLOB trading is disabled in this build (clob-client-sdk was removed for security). Run in simulation mode only."
+  );
 }
 
 export interface PlaceLimitOrderParams {
@@ -81,23 +51,8 @@ export async function placeLimitOrder(
   client: ClobClient,
   params: PlaceLimitOrderParams
 ): Promise<{ orderID: string; status: string }> {
-  const side = params.side === "BUY" ? Side.BUY : Side.SELL;
-  const tickSize = params.tickSize ?? "0.01";
-  const negRisk = params.negRisk ?? false;
-  const result = await client.createAndPostOrder(
-    {
-      tokenID: params.tokenId,
-      price: params.price,
-      size: params.size,
-      side,
-    },
-    { tickSize, negRisk },
-    OrderType.GTC
-  );
-  return {
-    orderID: (result as { orderID?: string }).orderID ?? (result as { id?: string }).id ?? "",
-    status: (result as { status?: string }).status ?? "unknown",
-  };
+  // This should never be called in simulation mode; if it is, make the failure explicit.
+  throw new Error("placeLimitOrder is disabled (simulation-only build, no live CLOB client).");
 }
 
 export interface PlaceLimitOrderBatchResult {
@@ -112,71 +67,14 @@ export async function placeLimitOrdersBatch(
   client: ClobClient,
   paramsList: PlaceLimitOrderParams[]
 ): Promise<PlaceLimitOrderBatchResult[]> {
-  if (paramsList.length === 0) return [];
-  const tickSize = "0.01";
-  const negRisk = false;
-  const signedOrders = [];
-  for (const params of paramsList) {
-    const side = params.side === "BUY" ? Side.BUY : Side.SELL;
-    const order = await client.createOrder(
-      {
-        tokenID: params.tokenId,
-        price: params.price,
-        size: params.size,
-        side,
-      },
-      { tickSize: params.tickSize ?? tickSize, negRisk: params.negRisk ?? negRisk }
-    );
-    signedOrders.push({ order, orderType: OrderType.GTC });
-  }
-  const raw = await client.postOrders(signedOrders);
-  const results: PlaceLimitOrderBatchResult[] = [];
-  const arr = Array.isArray(raw)
-    ? raw
-    : raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data)
-      ? (raw as { data: unknown[] }).data
-      : [raw];
-  for (let i = 0; i < paramsList.length; i++) {
-    const r = arr[i];
-    if (r && typeof r === "object") {
-      const orderID =
-        (r as { orderID?: string }).orderID ??
-        (r as { order_id?: string }).order_id ??
-        (r as { id?: string }).id ??
-        "";
-      const status = (r as { status?: string }).status ?? "unknown";
-      const success = (r as { success?: boolean }).success;
-      const errorMsg =
-        (r as { errorMsg?: string }).errorMsg ??
-        (r as { error?: string }).error ??
-        (r as { message?: string }).message ??
-        "";
-      results.push({
-        orderID: String(orderID ?? ""),
-        status,
-        ...(success !== undefined && { success }),
-        ...(errorMsg !== undefined && errorMsg !== "" && { errorMsg }),
-      });
-    } else {
-      results.push({ orderID: "", status: "unknown" });
-    }
-  }
-  return results;
+  // Batch order placement is not available without a real CLOB client.
+  throw new Error("placeLimitOrdersBatch is disabled (simulation-only build, no live CLOB client).");
 }
 
 /** Get balance for a conditional token (shares). Returns 0 if token_id missing or on error. */
 export async function getBalance(client: ClobClient, tokenId: string): Promise<number> {
-  try {
-    const res = await client.getBalanceAllowance({
-      asset_type: AssetType.CONDITIONAL,
-      token_id: tokenId,
-    });
-    const raw = parseFloat(res?.balance ?? "0");
-    if (!Number.isFinite(raw)) return 0;
-    return raw / 1e6;
-  } catch {
-    return 0;
-  }
+  // Without a live CLOB client, we cannot query balances; treat as 0.
+  return 0;
 }
 
 export interface PlaceMarketOrderParams {
@@ -192,26 +90,12 @@ export async function placeMarketOrder(
   client: ClobClient,
   params: PlaceMarketOrderParams
 ): Promise<{ orderID: string; status: string }> {
-  const side = params.side === "BUY" ? Side.BUY : Side.SELL;
-  const orderType = params.orderType === "FAK" ? OrderType.FAK : OrderType.FOK;
-  const result = await client.createAndPostMarketOrder(
-    {
-      tokenID: params.tokenId,
-      side,
-      amount: params.amount,
-    },
-    { tickSize: "0.01", negRisk: false },
-    orderType
-  );
-  return {
-    orderID: (result as { orderID?: string }).orderID ?? (result as { id?: string }).id ?? "",
-    status: (result as { status?: string }).status ?? "unknown",
-  };
+  throw new Error("placeMarketOrder is disabled (simulation-only build, no live CLOB client).");
 }
 
 /** Cancel one order by ID. */
 export async function cancelOrder(client: ClobClient, orderId: string): Promise<void> {
-  await client.cancelOrder({ orderID: orderId });
+  throw new Error("cancelOrder is disabled (simulation-only build, no live CLOB client).");
 }
 
 /** Get open orders, optionally filtered by asset_id (token_id). */
@@ -219,7 +103,6 @@ export async function getOpenOrders(
   client: ClobClient,
   assetId?: string
 ): Promise<Array<{ id: string; asset_id: string; side: string; original_size: string; price: string }>> {
-  const params = assetId ? { asset_id: assetId } : undefined;
-  const orders = await client.getOpenOrders(params, true);
-  return Array.isArray(orders) ? orders : [];
+  // No real CLOB client → no open orders.
+  return [];
 }
