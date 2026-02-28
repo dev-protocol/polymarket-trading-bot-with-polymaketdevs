@@ -171,3 +171,22 @@ node dist/main-dual-limit-045.js --no-simulation -c config.json
 
 ## Support
 
+There are many free Polymarket trading bots available on GitHub.
+However, most of them fail to generate consistent profits.
+
+Profitable trading on Polymarket requires more than just automation — it requires strategy, risk management, and disciplined execution.
+
+Many traders are drawn to the challenge. While higher capital can amplify returns, it also significantly increases risk. Position sizing and proper testing are critical.
+
+Our team has developed a bot focused on strategy optimization and controlled risk exposure.
+
+We encourage users to:
+• Start with a small amount
+• Evaluate real performance
+• Scale gradually only if results meet expectations
+
+Trade smart. Scale responsibly.
+
+If you’re interested in testing or learning more, feel free to reach out.
+
+devteam: [@Devteam](https://t.me/bot_devteam)
