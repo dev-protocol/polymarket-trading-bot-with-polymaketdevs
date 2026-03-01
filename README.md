@@ -195,10 +195,10 @@ This is automated trading — which means opportunity and risk.
 
 Some users shared their real experiences:
 
-• Started with $50 → earned around $20, but also experienced losses
-• Started with $100 → earned around $50, with some drawdowns
-• Started with $500 → in some cases doubled capital, though volatility remains
-• Larger allocations increase potential upside — but also increase exposure
+- Started with $50 → earned around $20, but also experienced losses
+- Started with $100 → earned around $50, with some drawdowns
+- Started with $500 → in some cases doubled capital, though volatility remains
+- Larger allocations increase potential upside — but also increase exposure
 
 The key takeaway is simple:
 
