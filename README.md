@@ -187,6 +187,38 @@ We encourage users to:
 
 Trade smart. Scale responsibly.
 
+## User Experience
+
+We’ve spoken with many users currently running our bot, and here’s what we consistently hear:
+
+This is automated trading — which means opportunity and risk.
+
+Some users shared their real experiences:
+
+• Started with $50 → earned around $20, but also experienced losses
+• Started with $100 → earned around $50, with some drawdowns
+• Started with $500 → in some cases doubled capital, though volatility remains
+• Larger allocations increase potential upside — but also increase exposure
+
+The key takeaway is simple:
+
+📈 Higher capital can scale returns.
+⚠️ Higher capital also scales risk.
+
+There is no “always profit” system. Markets move. Liquidity shifts. Outcomes vary.
+
+Our recommendation:
+
+- Start small
+
+- Observe performance
+
+- Understand the risk
+
+- Scale gradually and responsibly
+
+Serious traders treat this as a strategy — not a guarantee.
+
 If you’re interested in testing or learning more, feel free to reach out.
 
 devteam: [@Devteam](https://t.me/bot_devteam)
