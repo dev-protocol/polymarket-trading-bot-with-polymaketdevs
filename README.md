@@ -181,9 +181,9 @@ Many traders are drawn to the challenge. While higher capital can amplify return
 Our team has developed a bot focused on strategy optimization and controlled risk exposure.
 
 We encourage users to:
-• Start with a small amount
-• Evaluate real performance
-• Scale gradually only if results meet expectations
+- Start with a small amount
+- Evaluate real performance
+- Scale gradually only if results meet expectations
 
 Trade smart. Scale responsibly.
 
